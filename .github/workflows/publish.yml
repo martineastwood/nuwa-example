@@ -30,6 +30,8 @@ jobs:
 
       CIBW_BEFORE_ALL_WINDOWS: "choco install nim --version 2.0.0 -y"
 
+      CIBW_BEFORE_ALL_MACOS: "brew install nim"
+
     steps:
       - uses: actions/checkout@v4
 
