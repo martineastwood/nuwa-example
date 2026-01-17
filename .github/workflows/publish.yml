@@ -30,7 +30,7 @@ jobs:
 
       CIBW_BEFORE_ALL_WINDOWS: "choco install nim --version 2.0.0 -y"
 
-      CIBW_ENVIRONMENT_WINDOWS: 'PATH="$PATH;C:\\tools\\Nim\\bin"'
+      CIBW_ENVIRONMENT_WINDOWS: 'PATH="$PATH;C:\\tools\\Nim\\nim-2.0.0\\bin"'
 
       CIBW_BEFORE_ALL_MACOS: "brew install nim"
 
