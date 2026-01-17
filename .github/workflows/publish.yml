@@ -8,36 +8,35 @@ on:
 
 jobs:
   build_wheels:
-    name: Wheel on ${{ matrix.os }}
+    name: Wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # We build on all three major OSs
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     env:
-      # Configure cibuildwheel to build for recent Python versions
+      # Build for Python 3.9 through 3.13
       CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-      # Skip 32-bit builds and PyPy to save time
-      CIBW_SKIP: "pp* *-musllinux_* *i686"
+      # Skip 32-bit, PyPy, and musllinux (Alpine) to save time/complexity
+      CIBW_SKIP: "pp* *i686 *-musllinux_*"
 
-      # 1. LINUX: Install Nim inside the Docker container using yum/curl
-      # We install xz (for extracting) and gcc (for linking)
+      # --- LINUX STRATEGY ---
+      # 1. Install prerequisites (xz for decompression, gcc for compilation)
+      # 2. Use the official 'choosenim' installer (non-interactive -y)
+      # 3. Symlink the binaries to /usr/bin so they are found automatically
       CIBW_BEFORE_ALL_LINUX: >
-        yum install -y curl git &&
-        curl -L https://nim-lang.org/choosenim/init.sh -o choosenim.sh &&
-        sh choosenim.sh -y &&
-        export PATH=/root/.nimble/bin:$PATH &&
-        choosenim update -y &&
-        choosenim install 2.0.0 -y
-
-      # 2. WINDOWS/MAC: Nim is installed on the host runner (outside Docker)
-      # We add it to PATH so the build script can find it
+        yum install -y xz gcc curl &&
+        curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y &&
+        ln -s /root/.nimble/bin/nim /usr/bin/nim &&
+        ln -s /root/.nimble/bin/nimble /usr/bin/nimble
 
     steps:
       - uses: actions/checkout@v4
 
-      # Install Nim on Host (For Windows/Mac)
+      # --- WINDOWS/MAC STRATEGY ---
+      # On these platforms, we run on the host, so we CAN use the action
       - name: Setup Nim (Host)
         if: runner.os != 'Linux'
         uses: jiro4989/setup-nim-action@v2
@@ -46,7 +45,7 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.2
-        # cibuildwheel automatically runs 'pip wheel .' which triggers your backend
+        # cibuildwheel will output to ./wheelhouse/
 
       - uses: actions/upload-artifact@v4
         with:
@@ -59,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Sdist needs Nim to run 'nimble install' if you have deps check enabled
+      # For sdist, we just need Nim on the runner (no Docker)
       - uses: jiro4989/setup-nim-action@v2
         with:
           nim-version: "2.0.0"
