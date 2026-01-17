@@ -13,30 +13,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # We build on all three major OSs
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     env:
       # Build for Python 3.9 through 3.13
       CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-      # Skip 32-bit, PyPy, and musllinux (Alpine) to save time/complexity
       CIBW_SKIP: "pp* *i686 *-musllinux_*"
 
-      # --- LINUX STRATEGY ---
-      # 1. Install prerequisites (xz for decompression, gcc for compilation)
-      # 2. Use the official 'choosenim' installer (non-interactive -y)
-      # 3. Symlink the binaries to /usr/bin so they are found automatically
       CIBW_BEFORE_ALL_LINUX: >
         yum install -y xz gcc curl &&
         curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y &&
-        ln -s /root/.nimble/bin/nim /usr/bin/nim &&
-        ln -s /root/.nimble/bin/nimble /usr/bin/nimble
+        export NIM_BIN=$(find /root/.nimble/bin -name nim -type f | head -n 1) &&
+        ln -s $NIM_BIN /usr/bin/nim &&
+        ln -s $(dirname $NIM_BIN)/nimble /usr/bin/nimble
 
     steps:
       - uses: actions/checkout@v4
 
       # --- WINDOWS/MAC STRATEGY ---
-      # On these platforms, we run on the host, so we CAN use the action
       - name: Setup Nim (Host)
         if: runner.os != 'Linux'
         uses: jiro4989/setup-nim-action@v2
@@ -44,8 +38,8 @@ jobs:
           nim-version: "2.0.0"
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
-        # cibuildwheel will output to ./wheelhouse/
+        # Upgrade to latest version to get the fixed manylinux images
+        uses: pypa/cibuildwheel@v2.22.0
 
       - uses: actions/upload-artifact@v4
         with:
@@ -58,7 +52,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # For sdist, we just need Nim on the runner (no Docker)
       - uses: jiro4989/setup-nim-action@v2
         with:
           nim-version: "2.0.0"
@@ -73,19 +66,19 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
 
-  # publish:
-  #   needs: [build_wheels, build_sdist]
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/${{ github.event.repository.name }}
-  #   permissions:
-  #     id-token: write
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: cibw-*
-  #         merge-multiple: true
-  #         path: dist
+  publish:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ github.event.repository.name }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          merge-multiple: true
+          path: dist
 
-  #     - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@release/v1
