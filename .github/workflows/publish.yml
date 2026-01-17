@@ -16,9 +16,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     env:
-      # Build for Python 3.9 through 3.13
       CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-      CIBW_SKIP: "pp* *i686 *-musllinux_*"
+      CIBW_SKIP: "pp* *-musllinux_* *i686 *-win32"
 
       CIBW_BEFORE_ALL_LINUX: >
         yum install -y xz curl gcc &&
@@ -32,7 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # --- WINDOWS/MAC STRATEGY ---
       - name: Setup Nim (Host)
         if: runner.os != 'Linux'
         uses: jiro4989/setup-nim-action@v2
@@ -41,16 +39,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # Add this debugging step
-      - name: Debug Nuwa Version
-        run: |
-          pip install nuwa-build
-          pip show nuwa-build
-          echo "-----------"
-          python -c "import nuwa_build; print(nuwa_build.__file__)"
-
       - name: Build wheels
-        # Upgrade to latest version to get the fixed manylinux images
         uses: pypa/cibuildwheel@v2.22.0
 
       - uses: actions/upload-artifact@v4

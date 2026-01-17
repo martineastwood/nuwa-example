@@ -42,6 +42,7 @@ This project automatically generates Python type stubs (`.pyi` files) during com
 - 📖 **Documentation**: Docstrings appear in hover tooltips
 
 Example type stub for `add`:
+
 ```python
 def add(a: int, b: int) -> int:
     """Add two integers together"""
@@ -87,6 +88,7 @@ print(sum_result)  # 15
 ## Adding New Functions
 
 1. Edit `nim/nuwa_example_lib.nim`:
+
 ```nim
 import nuwa_sdk
 
@@ -96,11 +98,13 @@ proc my_function(x: int, y: int): string {.nuwa_export.} =
 ```
 
 2. Recompile:
+
 ```bash
 nuwa develop
 ```
 
 3. Use from Python (with full autocomplete):
+
 ```python
 from nuwa_example import my_function
 
@@ -154,7 +158,10 @@ The workflow uses [cibuildwheel](https://github.com/pypa/cibuildwheel) to build 
    ```
 
 The workflow will automatically:
+
 - Build wheels for Linux, macOS, and Windows
 - Support Python 3.9, 3.10, 3.11, 3.12, and 3.13
 - Build a source distribution
 - Publish everything to PyPI
+
+<!-- docker run --rm -it -v $(pwd):/app -w /app quay.io/pypa/manylinux2014_x86_64:latest /bin/bash -->
