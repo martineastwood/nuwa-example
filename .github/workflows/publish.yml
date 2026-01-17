@@ -16,6 +16,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     env:
+      PYTHONUTF8: 1
       CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
       CIBW_SKIP: "pp* *-musllinux_* *i686 *-win32"
 
