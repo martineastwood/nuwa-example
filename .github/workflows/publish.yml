@@ -28,6 +28,8 @@ jobs:
         ln -s /opt/nim/bin/nimble /usr/bin/nimble &&
         rm nim.tar.xz
 
+      CIBW_BEFORE_ALL_WINDOWS: "choco install nim --version 2.0.0 -y"
+
     steps:
       - uses: actions/checkout@v4
 
