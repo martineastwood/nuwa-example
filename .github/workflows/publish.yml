@@ -39,6 +39,17 @@ jobs:
         with:
           nim-version: "2.0.0"
 
+    steps:
+      - uses: actions/checkout@v4
+
+      # Add this debugging step
+      - name: Debug Nuwa Version
+        run: |
+          pip install nuwa-build
+          pip show nuwa-build
+          echo "-----------"
+          python -c "import nuwa_build; print(nuwa_build.__file__)"          
+
       - name: Build wheels
         # Upgrade to latest version to get the fixed manylinux images
         uses: pypa/cibuildwheel@v2.22.0
