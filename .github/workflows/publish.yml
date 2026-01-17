@@ -21,11 +21,13 @@ jobs:
       CIBW_SKIP: "pp* *i686 *-musllinux_*"
 
       CIBW_BEFORE_ALL_LINUX: >
-        yum install -y xz gcc curl &&
-        curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y &&
-        export NIM_BIN=$(find /root/.nimble/bin -name nim -type f | head -n 1) &&
-        ln -s $NIM_BIN /usr/bin/nim &&
-        ln -s $(dirname $NIM_BIN)/nimble /usr/bin/nimble
+        yum install -y xz curl gcc &&
+        curl -L https://nim-lang.org/download/nim-2.0.0-linux_x64.tar.xz -o nim.tar.xz &&
+        tar -xf nim.tar.xz &&
+        mv nim-2.0.0 /opt/nim &&
+        ln -s /opt/nim/bin/nim /usr/bin/nim &&
+        ln -s /opt/nim/bin/nimble /usr/bin/nimble &&
+        rm nim.tar.xz
 
     steps:
       - uses: actions/checkout@v4
