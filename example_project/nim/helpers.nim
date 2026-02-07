@@ -1,4 +1,4 @@
-# Helper functions for nuwa_example
+# Helper functions for example_project
 # These functions are accessible from lib.nim
 
 proc make_greeting(name: string): string =
